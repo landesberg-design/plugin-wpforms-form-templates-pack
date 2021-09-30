@@ -5,7 +5,7 @@
  * Description:       Additional form templates for WPForms.
  * Author:            WPForms
  * Author URI:        https://wpforms.com
- * Version:           1.2.1
+ * Version:           1.2.2
  * Requires at least: 4.9
  * Requires PHP:      5.5
  * Text Domain:       wpforms-form-templates-pack
@@ -31,7 +31,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin version.
-define( 'WPFORMS_FORM_TEMPLATES_VERSION', '1.2.1' );
+define( 'WPFORMS_FORM_TEMPLATES_VERSION', '1.2.2' );
 
 /**
  * Load the provider class.
@@ -41,7 +41,19 @@ define( 'WPFORMS_FORM_TEMPLATES_VERSION', '1.2.1' );
 function wpforms_form_templates_pack() {
 
 	// WPForms Pro is required.
-	if ( ! wpforms()->pro ) {
+	if (
+		! function_exists( 'wpforms' ) ||
+		! wpforms()->pro
+	) {
+		return;
+	}
+
+	// Deactivate addon for WPForms v1.6.8+.
+	if ( version_compare( wpforms()->version, '1.6.8', '>=' ) ) {
+
+		add_action( 'admin_init', 'wpforms_form_templates_pack_deactivate' );
+		add_action( 'admin_notices', 'wpforms_form_templates_pack_deactivate_notice' );
+
 		return;
 	}
 
@@ -49,7 +61,7 @@ function wpforms_form_templates_pack() {
 
 	$templates = apply_filters(
 		'wpforms_form_templates_pack_load',
-		array(
+		[
 			'accident-report',
 			'address-book',
 			'alumni-donation',
@@ -150,7 +162,7 @@ function wpforms_form_templates_pack() {
 			'wedding-invitation-rsvp',
 			'work-order-request',
 			'workshop-registration',
-		)
+		]
 	);
 
 	foreach ( $templates as $template ) {
@@ -169,12 +181,12 @@ add_action( 'wpforms_loaded', 'wpforms_form_templates_pack' );
  *
  * @since 1.0.0
  *
- * @param string $key
+ * @param string $key License key.
  */
 function wpforms_form_templates_pack_updater( $key ) {
 
 	new WPForms_Updater(
-		array(
+		[
 			'plugin_name' => 'WPForms Form Templates Pack',
 			'plugin_slug' => 'wpforms-form-templates-pack',
 			'plugin_path' => plugin_basename( __FILE__ ),
@@ -182,8 +194,38 @@ function wpforms_form_templates_pack_updater( $key ) {
 			'remote_url'  => WPFORMS_UPDATER_API,
 			'version'     => WPFORMS_FORM_TEMPLATES_VERSION,
 			'key'         => $key,
-		)
+		]
 	);
 }
 
 add_action( 'wpforms_updater', 'wpforms_form_templates_pack_updater' );
+
+/**
+ * Deactivate plugin.
+ *
+ * @since 1.2.2
+ */
+function wpforms_form_templates_pack_deactivate() {
+
+	deactivate_plugins( plugin_basename( __FILE__ ) );
+}
+
+/**
+ * Deactivate plugin admin notice.
+ *
+ * @since 1.2.2
+ */
+function wpforms_form_templates_pack_deactivate_notice() {
+
+	echo '<div class="notice notice-error"><p>';
+
+	esc_html_e( 'The WPForms Form Templates Pack plugin has been deactivated because WPForms v1.6.8 and later has a new way to bring you a lot more templates that are delivered to you regularly.', 'wpforms-form-templates-pack' );
+
+	echo '</p></div>';
+
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended
+	if ( isset( $_GET['activate'] ) ) {
+		unset( $_GET['activate'] );
+	}
+	// phpcs:enable
+}

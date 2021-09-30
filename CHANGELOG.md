@@ -1,6 +1,10 @@
 Change Log
 All notable changes to this project will be documented in this file, formatted via [this recommendation](https://keepachangelog.com/).
 
+## [1.2.2] - 2021-07-13
+### Added
+- Compatibility with WPForms v1.6.8.
+
 ## [1.2.1] - 2020-12-17
 ### Added
 - Name field to the Birthday Party Invitation RSVP form.
